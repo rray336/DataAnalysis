@@ -1,0 +1,8 @@
+flask
+pandas
+openpyxl
+xlrd
+plotly
+flask-cors
+werkzeug
+scikit-learn

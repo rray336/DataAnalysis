@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Data Analytics</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-input-button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .file-input-button:hover {
+            background: #0056b3;
+        }
+        
+        .upload-button {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .upload-button:hover {
+            background: #1e7e34;
+        }
+        
+        .upload-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .info-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .file-info {
+            text-align: left;
+            margin: 10px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Excel Data Analytics</h1>
+        <p>Upload your Excel file to generate interactive analytics and visualizations</p>
+    </div>
+
+    <div class="upload-section">
+        <h2>Upload Excel File</h2>
+        <div class="file-input-wrapper">
+            <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
+            <button class="file-input-button" onclick="document.getElementById('fileInput').click()">
+                Choose Excel File
+            </button>
+        </div>
+        <button class="upload-button" id="uploadButton" onclick="uploadFile()" disabled>
+            Upload & Analyze
+        </button>
+        
+        <div id="fileInfo" class="file-info" style="display: none;"></div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your data...</p>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+
+    <div class="results" id="results">
+        <div class="info-section" id="basicInfo">
+            <h2>📋 Data Overview</h2>
+            <div class="stats-grid" id="statsGrid"></div>
+        </div>
+        
+        <div id="chartsContainer"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            const uploadButton = document.getElementById('uploadButton');
+            const fileInfo = document.getElementById('fileInfo');
+            
+            if (selectedFile) {
+                uploadButton.disabled = false;
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <strong>Selected file:</strong> ${selectedFile.name}<br>
+                    <strong>Size:</strong> ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB<br>
+                    <strong>Type:</strong> ${selectedFile.type || 'Excel file'}
+                `;
+            } else {
+                uploadButton.disabled = true;
+                fileInfo.style.display = 'none';
+            }
+        });
+
+        function showMessage(text, type = 'error') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = type;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+        }
+
+        function hideMessage() {
+            document.getElementById('message').style.display = 'none';
+        }
+
+        function uploadFile() {
+            if (!selectedFile) {
+                showMessage('Please select a file first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            hideMessage();
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.success) {
+                    showMessage(`Successfully analyzed ${data.filename}`, 'success');
+                    displayResults(data.analysis);
+                } else {
+                    showMessage(data.error || 'An error occurred while processing the file.');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showMessage('Network error: ' + error.message);
+            });
+        }
+
+        function displayResults(analysis) {
+            const resultsDiv = document.getElementById('results');
+            const statsGrid = document.getElementById('statsGrid');
+            const chartsContainer = document.getElementById('chartsContainer');
+            
+            // Clear previous results
+            statsGrid.innerHTML = '';
+            chartsContainer.innerHTML = '';
+            
+            // Display basic info
+            const basicInfo = analysis.basic_info;
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${basicInfo.rows}</div>
+                    <div class="stat-label">Total Rows</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${basicInfo.columns}</div>
+                    <div class="stat-label">Total Columns</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${basicInfo.column_names.length}</div>
+                    <div class="stat-label">Data Fields</div>
+                </div>
+            `;
+            
+            // Display model results if available
+            if (analysis.model_results) {
+                const modelResults = analysis.model_results;
+                const modelInfo = document.createElement('div');
+                modelInfo.className = 'stat-item';
+                modelInfo.style.gridColumn = 'span 3';
+                modelInfo.innerHTML = `
+                    <h3>🤖 Predictive Model Results</h3>
+                    <div style="text-align: left; margin: 10px 0;">
+                        <strong>Target Variable:</strong> ${modelResults.dependent_variable}<br>
+                        <strong>Predictors:</strong> ${modelResults.independent_variables.join(', ')}<br>
+                        <strong>Best Model:</strong> ${modelResults.best_model}<br>
+                        <strong>R² Score:</strong> ${(modelResults.best_r2_score * 100).toFixed(2)}% (${modelResults.data_points} data points)<br>
+                        <small style="color: #666;">R² measures how well the model explains the variance in the target variable</small>
+                    </div>
+                `;
+                statsGrid.appendChild(modelInfo);
+                
+                // Display model formula if available
+                if (modelResults.model_formula) {
+                    const formulaInfo = document.createElement('div');
+                    formulaInfo.className = 'stat-item';
+                    formulaInfo.style.gridColumn = 'span 3';
+                    formulaInfo.style.backgroundColor = '#f0f8ff';
+                    formulaInfo.style.border = '2px solid #007bff';
+                    formulaInfo.innerHTML = `
+                        <h3>📐 Model Formula</h3>
+                        <div style="text-align: left; margin: 10px 0;">
+                            <div style="font-family: 'Courier New', monospace; background: white; padding: 10px; border-radius: 4px; margin: 8px 0; font-size: 14px; overflow-x: auto;">
+                                <strong>${modelResults.model_formula}</strong>
+                            </div>
+                            ${modelResults.formula_explanation ? `<div style="font-size: 12px; color: #555; white-space: pre-line; margin-top: 10px;">${modelResults.formula_explanation}</div>` : ''}
+                        </div>
+                    `;
+                    statsGrid.appendChild(formulaInfo);
+                }
+            }
+            
+            // Display column information
+            const columnInfo = document.createElement('div');
+            columnInfo.innerHTML = `
+                <h3>📊 Column Information</h3>
+                <div style="margin: 10px 0;">
+                    <strong>Columns:</strong> ${basicInfo.column_names.join(', ')}
+                </div>
+            `;
+            statsGrid.appendChild(columnInfo);
+            
+            // Display charts
+            analysis.charts.forEach((chartData, index) => {
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'chart-container';
+                chartDiv.innerHTML = `<h3>${chartData.title}</h3>`;
+                
+                const plotDiv = document.createElement('div');
+                plotDiv.id = `chart-${index}`;
+                chartDiv.appendChild(plotDiv);
+                chartsContainer.appendChild(chartDiv);
+                
+                // Render the Plotly chart
+                Plotly.newPlot(plotDiv.id, chartData.chart.data, chartData.chart.layout);
+            });
+            
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
