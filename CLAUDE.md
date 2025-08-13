@@ -16,40 +16,46 @@ The back end file will be a Python file that will analyze the data and draw char
 
 ## Development Setup
 
-This project appears to be in early development. When setting up:
+### Python Backend (Implemented)
 
-### Python Backend
+- Dependencies managed via `requirements.txt`
+- Current stack: Flask, Pandas, Plotly, scikit-learn, OpenPyXL
+- Uses virtual environments: `python -m venv venv`
 
-- Use `requirements.txt` or `pyproject.toml` for dependency management
-- Common dependencies will likely include: pandas, openpyxl, matplotlib, plotly, fastapi/flask
-- Consider using virtual environments: `python -m venv venv`
+### Frontend (Implemented)
 
-### Frontend Setup
+- Pure HTML/CSS/JavaScript with Plotly.js
+- File upload capabilities for Excel files (.xlsx/.xls)
+- Interactive visualizations with Plotly charts
 
-- Choose framework (React, Vue, or vanilla HTML/JS)
-- Include file upload capabilities for Excel files
-- Set up visualization libraries (Chart.js, D3.js, or integrate with Python plots)
+### Production Deployment (Railway)
+
+- Application deployed at: `https://web-production-00170.up.railway.app`
+- Automatic deployment from GitHub
+- Configuration files: `Procfile`, `runtime.txt`
 
 ## Common Commands
 
-When project structure is established, typical commands will be:
-
-### Python
+### Local Development
 
 ```bash
 pip install -r requirements.txt  # Install dependencies
-python app.py                    # Run backend server
-python -m pytest                 # Run tests (when implemented)
+python app.py                    # Run Flask server (http://localhost:5000)
 ```
 
-### Frontend (depending on framework choice)
+### Production Deployment (Railway)
 
 ```bash
-npm install                      # Install dependencies
-npm run dev                      # Development server
-npm run build                    # Production build
-npm test                         # Run tests
+git add .                        # Stage changes
+git commit -m "Your message"     # Commit changes
+git push origin main             # Push to GitHub (triggers Railway deploy)
 ```
+
+### Railway Configuration Files
+
+- `Procfile`: `web: python app.py`
+- `runtime.txt`: `python-3.11`
+- `app.py`: Modified to use `PORT` environment variable
 
 ## Key Implementation Notes
 

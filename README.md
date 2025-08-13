@@ -15,6 +15,8 @@ A web application that allows users to upload Excel files and generate interacti
 
 ## Setup and Installation
 
+### Local Development
+
 1. **Install Python dependencies**:
    ```bash
    pip install -r requirements.txt
@@ -29,6 +31,27 @@ A web application that allows users to upload Excel files and generate interacti
    ```
    http://localhost:5000
    ```
+
+### Production Deployment (Railway)
+
+This application is configured for deployment on Railway:
+
+1. **Push to GitHub repository**
+2. **Deploy on Railway**:
+   - Go to [railway.app](https://railway.app)
+   - Click "Deploy from GitHub repo"
+   - Select your repository
+   - Railway automatically detects and deploys the Flask app
+
+3. **Live Application**: 
+   ```
+   https://web-production-00170.up.railway.app
+   ```
+
+#### Railway Configuration Files:
+- `Procfile` - Defines the web process
+- `runtime.txt` - Specifies Python 3.11
+- Updated `app.py` - Uses Railway's PORT environment variable
 
 ## Usage
 
@@ -54,6 +77,8 @@ A web application that allows users to upload Excel files and generate interacti
 ```
 ├── app.py              # Main Flask application
 ├── requirements.txt    # Python dependencies
+├── Procfile           # Railway deployment configuration
+├── runtime.txt        # Python version specification
 ├── templates/
 │   └── index.html     # Frontend interface
 └── uploads/           # Temporary file storage (created automatically)
