@@ -529,4 +529,6 @@ def upload_file():
     return jsonify({'error': 'Invalid file type. Please upload .xlsx or .xls files only.'}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
